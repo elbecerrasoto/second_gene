@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import shutil
+import subprocess as sp
+import sys
+from pathlib import Path
+from shlex import join, split
+
+from icecream import ic
+
+
+def is_internet_on():
+    # https://stackoverflow.com/questions/20913411/test-if-an-internet-connection-is-present-in-python
+    import socket
+
+    try:
+        socket.create_connection(("1.1.1.1", 53))
+        return True
+    except OSError:
+        return False
+
+def gen_temporal_name():
+    from random import random
+    script = os.path.basename(__file__)
+    return f"{script}_{str(random())[2:]}"
+
+
+CWD = Path(os.getcwd())
+DESCRIPTION = """Wrapper for ncbi-datasets-cli"""
+
+parser = argparse.ArgumentParser(
+    description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
+)
+parser.add_argument("pids", nargs="+", help="NCBI protein ID gene accession.")
+parser.add_argument("-o", "--out-dir", help=f"Output directory. Default: {CWD}.")
+parser.add_argument("-n", "--dry-run", action="store_true", help="Do nothing.")
+parser.add_argument("-d", "--debug", action="store_true", help="Print globals.")
+parser.add_argument("-k", "--keep", action="store_true", help="Keep temporal directory.")
+
+args = parser.parse_args()
+
+PIDS = " ".join(args.pids)
+OUT_DIR = CWD if args.out_dir is None else Path(args.out_dir)
+KEEP = args.keep
+DRY = args.dry_run
+DEBUG = args.debug
+
+if DEBUG:
+    ic(args)
+
+if __name__ == "__main__":
+
+    if not is_internet_on():
+        print("No network connection.\nShutting down execution.")
+        sys.exit(1)
+
+    TMP_DIR = CWD / gen_temporal_name()
+    ZIP = TMP_DIR / "ncbi_dataset.zip"
+    NESTED = TMP_DIR / "ncbi_dataset" / "data" / "protein.faa"
+    DATASETS = split(
+        f"datasets download gene accession {PIDS} --no-progressbar --filename {ZIP}"
+    )
+    UNZIP = split(f"unzip -nq {ZIP} -d {TMP_DIR}")
+
+    if DEBUG:
+        ic(OUT_DIR, TMP_DIR, ZIP, NESTED, DATASETS, UNZIP, PIDS)
+
+    if not DRY:
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"mkdir -p {OUT_DIR}", file=sys.stderr)
+
+    if not DRY:
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"mkdir -p {TMP_DIR}", file=sys.stderr)
+
+    if not DRY:
+        sp.run(DATASETS, check=True)
+    print(join(DATASETS), file=sys.stderr)
+
+    if not DRY:
+        sp.run(UNZIP, check=True)
+    print(join(UNZIP), file=sys.stderr)
+
+    if not DRY:
+        shutil.move(NESTED, OUT_DIR)
+    print(f"mv {NESTED} {OUT_DIR}", file=sys.stderr)
+
+    if not KEEP:
+        if not DRY:
+            shutil.rmtree(TMP_DIR)
+        print(f"rm -r {TMP_DIR}", file=sys.stderr)
