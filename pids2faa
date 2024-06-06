@@ -21,10 +21,13 @@ def is_internet_on():
     except OSError:
         return False
 
+
 def gen_temporal_name():
     from random import random
+
     script = os.path.basename(__file__)
     return f"{script}_{str(random())[2:]}"
+
 
 CWD = Path(os.getcwd())
 DEF_OUT = CWD / "protein.faa"
@@ -37,7 +40,9 @@ parser.add_argument("pids", nargs="+", help="NCBI protein ID gene accession.")
 parser.add_argument("-o", "--out-file", help=f"Output directory. Default: {DEF_OUT}.")
 parser.add_argument("-n", "--dry-run", action="store_true", help="Do nothing.")
 parser.add_argument("-d", "--debug", action="store_true", help="Print globals.")
-parser.add_argument("-k", "--keep", action="store_true", help="Keep temporal directory.")
+parser.add_argument(
+    "-k", "--keep", action="store_true", help="Keep temporal directory."
+)
 
 args = parser.parse_args()
 
@@ -65,30 +70,37 @@ if __name__ == "__main__":
     )
     UNZIP = split(f"unzip -nq {ZIP} -d {TMP_DIR}")
 
-    if DEBUG:
-        ic(OUT_DIR, TMP_DIR, ZIP, NESTED, DATASETS, UNZIP, PIDS)
+    def exec():
 
-    if not DRY:
-        OUT_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"mkdir -p {OUT_DIR}", file=sys.stderr)
+        if DEBUG:
+            ic(OUT_DIR, TMP_DIR, ZIP, NESTED, DATASETS, UNZIP, PIDS)
 
-    if not DRY:
-        TMP_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"mkdir -p {TMP_DIR}", file=sys.stderr)
-
-    if not DRY:
-        sp.run(DATASETS, check=True)
-    print(join(DATASETS), file=sys.stderr)
-
-    if not DRY:
-        sp.run(UNZIP, check=True)
-    print(join(UNZIP), file=sys.stderr)
-
-    if not DRY:
-        shutil.move(NESTED, OUT_FILE)
-    print(f"mv {NESTED} {OUT_FILE}", file=sys.stderr)
-
-    if not KEEP:
         if not DRY:
-            shutil.rmtree(TMP_DIR)
-        print(f"rm -r {TMP_DIR}", file=sys.stderr)
+            OUT_DIR.mkdir(parents=True, exist_ok=True)
+        print(f"mkdir -p {OUT_DIR}", file=sys.stderr)
+
+        if not DRY:
+            TMP_DIR.mkdir(parents=True, exist_ok=True)
+        print(f"mkdir -p {TMP_DIR}", file=sys.stderr)
+
+        if not DRY:
+            sp.run(DATASETS, check=True)
+        print(join(DATASETS), file=sys.stderr)
+
+        if not DRY:
+            sp.run(UNZIP, check=True)
+        print(join(UNZIP), file=sys.stderr)
+
+        if not DRY:
+            shutil.move(NESTED, OUT_FILE)
+        print(f"mv {NESTED} {OUT_FILE}", file=sys.stderr)
+
+        if not KEEP:
+            if not DRY:
+                shutil.rmtree(TMP_DIR)
+            print(f"rm -r {TMP_DIR}", file=sys.stderr)
+
+    try:
+        exec()
+    except KeyboardInterrupt:
+        shutil.rmtree(TMP_DIR, ignore_errors=True)
