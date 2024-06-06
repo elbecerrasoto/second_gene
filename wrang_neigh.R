@@ -16,11 +16,18 @@ neigh <- read_tsv(IN)
 
 
 attach(neigh)
-zero_pos <- which(Nseq == 0 & q_alias == "endo")
-relevant_pos <- sort(c(zero_pos - 2, zero_pos, zero_pos + 2))
+
+zeros_pos <- which(Nseq == 0 & q_alias == "endo")
+
+companions_pos <- if_else(strand[zeros_pos] == "-",
+  zeros_pos + 2,
+  zeros_pos - 2
+)
+
+relevant_pos <- sort(c(zeros_pos, companions_pos))
+
 detach(neigh)
 
 
 neigh <- neigh[relevant_pos, ][RELEVANT_COLS]
-
 view(neigh)
