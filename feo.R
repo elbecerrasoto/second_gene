@@ -32,7 +32,8 @@ flights |>
   summarize(
     behind = mean(arr_delay),
     n = n(),
-    .groups = "drop")
+    .groups = "drop"
+  )
 
 
 mean_NAR <- partial(mean, na.rm = TRUE)
@@ -48,7 +49,8 @@ flights |>
     n_day = n(),
     n_ahead = sum_NAR(arr_delay <= 0),
     n_behind = sum_NAR(arr_delay > 0),
-    .groups = "drop")
+    .groups = "drop"
+  )
 
 
 get_0s_and_2s <- function(neigh) {
@@ -77,23 +79,23 @@ length(zeros_pos) * 3
 length(relevant_pos)
 
 
-RELEVANT_COLS <- c("Nseq",
-                   "pid",
-                   "q_alias",
-                   "strand")
+RELEVANT_COLS <- c(
+  "Nseq",
+  "pid",
+  "q_alias",
+  "strand"
+)
 
-relevant_sub <- neigh[relevant_pos,][RELEVANT_COLS]
+relevant_sub <- neigh[relevant_pos, ][RELEVANT_COLS]
 
 view(relevant_sub)
 
 
-function(x)
-
-
-# Machinen Representation
-# Mind Representation
-
-attach(neigh)
+function(x) {
+           # Machinen Representation
+  # Mind Representation
+  attach(neigh)
+}
 
 class(logical_NA)
 NA_character_
@@ -107,7 +109,7 @@ if (NA) {
 names(neigh)
 
 
-in_vec <- c(1,2,5,10)
+in_vec <- c(1, 2, 5, 10)
 out_vec <- vector(mode = "logical", length = max(in_vec))
 
 out_vec[in_vec] <- TRUE
@@ -124,13 +126,3 @@ print(x <- 1:10)
 
 ?which
 (Nseq == 0)
-
-
-
-
-
-
-
-
-
-

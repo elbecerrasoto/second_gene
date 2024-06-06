@@ -4,13 +4,15 @@ IN <- "neighborhoods_bsub.tsv"
 RELEVANT_COLS <- c(
   "Nseq",
   "pid",
-  "q_alias",
-  "strand"
+  "strand",
+  "gene",
+  "product",
+  "genome",
+  "locus_tag"
 )
 
 
-neigh <- read_tsv(IN) |>
-  select(RELEVANT_COLS)
+neigh <- read_tsv(IN)
 
 
 attach(neigh)
@@ -19,6 +21,6 @@ relevant_pos <- sort(c(zero_pos - 2, zero_pos, zero_pos + 2))
 detach(neigh)
 
 
-neigh <- neigh[relevant_pos, ]
+neigh <- neigh[relevant_pos, ][RELEVANT_COLS]
 
 view(neigh)
